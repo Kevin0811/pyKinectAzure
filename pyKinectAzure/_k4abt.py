@@ -31,6 +31,7 @@ class k4abt:
 		self.k4abt_tracker_create = dll.k4abt_tracker_create
 		self.k4abt_tracker_create.restype=ctypes.c_int
 		self.k4abt_tracker_create.argtypes=(ctypes.POINTER(k4a_calibration_t), k4abt_tracker_configuration_t, ctypes.POINTER(k4abt_tracker_t))
+		
 
 		# K4ABT_EXPORT void k4abt_tracker_destroy(k4abt_tracker_t tracker_handle);
 		self.k4abt_tracker_destroy = dll.k4abt_tracker_destroy
@@ -106,3 +107,4 @@ def VERIFY(result, error):
 		print(error)
 		traceback.print_stack()
 		sys.exit(1)
+
