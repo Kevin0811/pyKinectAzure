@@ -15,7 +15,7 @@ class pyKinectAzure:
 			if platform.system().lower() == 'linux':
 				modulePath = r'/usr/lib/x86_64-linux-gnu/libk4a.so'
 			else:
-				modulePath = 'C:\\Program Files\\Azure Kinect SDK v1.4.0\\sdk\\windows-desktop\\amd64\\release\\bin\\k4a.dll'
+				modulePath = 'C:\\Program Files\\Azure Kinect SDK v1.4.1\\sdk\\windows-desktop\\amd64\\release\\bin\\k4a.dll'
 		self.k4a = _k4a.k4a(modulePath)
 
 		self.device_handle = _k4a.k4a_device_t()
@@ -34,6 +34,12 @@ class pyKinectAzure:
 		# Initialize the body tracker
 		self.body_tracker = kinectBodyTracker(bodyTrackerModulePath,  depthSensorCalibration)
 
+	def get_num_bodies(self):
+
+		num = self.body_tracker.get_num_bodies()
+
+		return num
+
 	def bodyTracker_update(self):
 
 		# Add capture to the body tracker processing queue
@@ -42,17 +48,23 @@ class pyKinectAzure:
 		# Perform body detection
 		self.body_tracker.detectBodies()
 
-	def bodyTracker_get_body_segmentation(self):
+	def bodyTracker_get_body_segmentation_color(self):
 		# Get the body segmentation image
 		body_image = self.image_convert_to_numpy(self.body_tracker.segmented_body_img).astype(np.uint8)
 
 		# Add color to the segmentation based on the id value of each pixel
 		body_image_color = np.dstack([cv2.LUT(body_image, _k4abt.body_colors[:,i]) for i in range(3)])
 
-		# Add bod
-
 		return body_image_color
 
+	def bodyTracker_get_body_segmentation(self):
+		# Get the body segmentation image
+		body_image = self.image_convert_to_numpy(self.body_tracker.segmented_body_img).astype(np.uint8)
+
+		# Add color to the segmentation based on the id value of each pixel
+		#body_image_color = np.dstack([cv2.LUT(body_image, _k4abt.body_colors[:,i]) for i in range(3)])
+		return self.body_tracker.segmented_body_img
+	
 	def bodyTracker_project_skeleton(self, skeleton):
 		# Project using the calibration of the camera for the image
 		position_2d = _k4a.k4a_float2_t()
@@ -73,7 +85,7 @@ class pyKinectAzure:
 			skeleton2D.joints2D[jointID].confidence_level = joint.confidence_level
 					
 		return skeleton2D
-
+		
 	def device_get_installed_count(self):
 		"""Gets the number of connected devices
 
@@ -519,6 +531,10 @@ class pyKinectAzure:
 
 		_k4a.VERIFY(self.k4a.k4a_transformation_depth_image_to_color_camera(transformation_handle,input_depth_image_handle,transformed_depth_image_handle),"Transformation from depth to color failed!")
 
+	def transformation_depth_image_to_color_camera_custom(self,transformation_handle,input_depth_image_handle,input_custom_image_handle,transformed_depth_image_handle,transformed_custom_image_handle):
+
+		_k4a.VERIFY(self.k4a.k4a_transformation_depth_image_to_color_camera_custom(transformation_handle,input_depth_image_handle,input_custom_image_handle,transformed_depth_image_handle,transformed_custom_image_handle,0,255),"Transformation from depth to color custom failed!")
+
 	def image_convert_to_numpy(self, image_handle):
 		"""Get the image data as a numpy array
 
@@ -585,6 +601,42 @@ class pyKinectAzure:
 
 		# Get transformed image data
 		transformed_image = self.image_convert_to_numpy(transformed_depth_image_handle)
+
+		# Close transformation 
+		self.transformation_destroy(transformation_handle)
+
+		return transformed_image
+
+	# Custom
+	def transform_depth_to_color_custom(self,input_depth_image_handle,input_custom_image_handle, color_image_handle):
+		calibration = _k4a.k4a_calibration_t()
+
+		# Get desired image format
+		image_format = self.image_get_format(input_depth_image_handle)
+		image_format_color = self.image_get_format(color_image_handle)
+		image_width = self.image_get_width_pixels(color_image_handle)
+		image_height = self.image_get_height_pixels(color_image_handle)
+		image_stride = 0
+		image_stride_color = image_width
+
+		# Get the camera calibration
+		self.device_get_calibration(self.config.depth_mode,self.config.color_resolution,calibration)
+
+		# Create transformation
+		transformation_handle = self.transformation_create(calibration)
+
+		# Create the image handle		
+		transformed_depth_image_handle = _k4a.k4a_image_t()
+		self.image_create(image_format,image_width,image_height,image_stride,transformed_depth_image_handle)
+
+		transformed_custom_image_handle = _k4a.k4a_image_t()
+		self.image_create(6,image_width,image_height,image_stride_color,transformed_custom_image_handle)
+		
+		# Transform the depth image to the color image format
+		self.transformation_depth_image_to_color_camera_custom(transformation_handle,input_depth_image_handle,input_custom_image_handle,transformed_depth_image_handle,transformed_custom_image_handle)
+
+		# Get transformed image data
+		transformed_image = self.image_convert_to_numpy(transformed_custom_image_handle)
 
 		# Close transformation 
 		self.transformation_destroy(transformation_handle)
