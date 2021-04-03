@@ -4,7 +4,7 @@ sys.path.insert(1, '../pyKinectAzure/')
 
 import numpy as np
 from pyKinectAzure import pyKinectAzure, _k4a
-from kinectBodyTracker import kinectBodyTracker, _k4abt
+#from kinectBodyTracker import kinectBodyTracker, _k4abt
 import cv2
 
 # Path to the module
@@ -49,18 +49,26 @@ if __name__ == "__main__":
 			# Perform body detection
 			pyK4A.bodyTracker_update()
 
+			# Get the information of each body
+			for body in pyK4A.body_tracker.bodiesNow:
+				pyK4A.body_tracker.printBodyPosition(body)
 
 			# Read and convert the image data to numpy array:
 			depth_image = pyK4A.image_convert_to_numpy(depth_image_handle)
-			depth_color_image = cv2.convertScaleAbs (depth_image, alpha=0.05)  #alpha is fitted by visual comparison with Azure k4aviewer results 
+
+			# cv2.convertScaleAbs Depth to uint8 (255)
+			# alpha is fitted by visual comparison with Azure k4aviewer results 
+			depth_color_image = cv2.convertScaleAbs (depth_image, alpha=0.05)
+
+			# GRAY to RGB
 			depth_color_image = cv2.cvtColor(depth_color_image, cv2.COLOR_GRAY2RGB) 
 
 			# Get body segmentation image
 			body_image_color = pyK4A.bodyTracker_get_body_segmentation()
 
-			combined_image = cv2.addWeighted(depth_color_image, 0.8, body_image_color, 0.2, 0)
-
 			# Overlay body segmentation on depth image
+			combined_image = cv2.addWeighted(depth_color_image, 0.8, body_image_color, 0.2, 0)
+			
 			cv2.imshow('Segmented Depth Image',combined_image)
 			k = cv2.waitKey(1)
 
