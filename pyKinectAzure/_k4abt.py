@@ -106,4 +106,3 @@ def VERIFY(result, error):
 		print(error)
 		traceback.print_stack()
 		sys.exit(1)
-
