@@ -52,7 +52,7 @@ class kinectBodyTracker:
 		print(f"BodyId: {body.id}", \
 			  f"X: {body.skeleton.joints[_k4abt.K4ABT_JOINT_SPINE_NAVEL].position.v[0]:.2f} mm", \
 			  f"Y: {body.skeleton.joints[_k4abt.K4ABT_JOINT_SPINE_NAVEL].position.v[1]:.2f} mm", \
-			  f"Z: {body.skeleton.joints[_k4abt.K4ABT_JOINT_SPINE_NAVEL].position.v[2]:.2f} mm")        
+			  f"Z: {body.skeleton.joints[_k4abt.K4ABT_JOINT_SPINE_NAVEL].position.v[2]:.2f} mm")
 
 	def draw2DSkeleton(self, skeleton2D, bodyId, image):
 		color = _k4abt.body_colors
@@ -68,7 +68,7 @@ class kinectBodyTracker:
             )
 
 		return image
-		
+
 	def initializeTracker(self):
 		"""Initialize the body tracker
 
@@ -86,7 +86,7 @@ class kinectBodyTracker:
 
 		When done with body tracking, close the handle with k4abt_tracker_destroy().
 		"""
-		_k4abt.VERIFY(self.k4abt.k4abt_tracker_create(self.sensor_calibration, self.tracker_config, self.tracker_handle), "Body tracker failed!")
+		_k4abt.VERIFY(self.k4abt.k4abt_tracker_create(self.sensor_calibration, self.tracker_config, self.tracker_handle), "Body tracker initialization failed!")
 		self.tracker_running = True
 
 	def destroyTracker(self):
