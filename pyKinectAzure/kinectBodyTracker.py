@@ -14,7 +14,8 @@ class kinectBodyTracker:
 		self.k4abt = _k4abt.k4abt(modulePath)
 
 		self.tracker_handle = _k4abt.k4abt_tracker_t()	
-		self.tracker_config = _k4abt.K4ABT_TRACKER_CONFIG_DEFAULT
+		self.tracker_config = _k4abt.k4abt_tracker_configuration_t(0,2,0,None)
+		print("CONFIG " + str(self.tracker_config.processing_mode))
 		self.body_frame_handle = _k4abt.k4abt_frame_t()
 		self.segmented_body_img = _k4a.k4a_image_t()
 		self.capture_handle = _k4a.k4a_capture_t()
@@ -23,7 +24,7 @@ class kinectBodyTracker:
 		self.tracker_running = False
 		self.bodiesNow = []
 
-		self.initializeTracker()
+		self.initializeTracker()		
 
 	def detectBodies(self):
 
@@ -42,8 +43,8 @@ class kinectBodyTracker:
 		if num_bodies:
 			for bodyIdx in range(num_bodies):
 				body = _k4abt.k4abt_body_t()
-				body.skeleton = self.get_body_skeleton(bodyIdx);
-				body.id = self.get_body_id(bodyIdx);
+				body.skeleton = self.get_body_skeleton(bodyIdx)
+				body.id = self.get_body_id(bodyIdx)
 
 				self.bodiesNow.append(body)
 
@@ -51,7 +52,7 @@ class kinectBodyTracker:
 		print(f"BodyId: {body.id}", \
 			  f"X: {body.skeleton.joints[_k4abt.K4ABT_JOINT_SPINE_NAVEL].position.v[0]:.2f} mm", \
 			  f"Y: {body.skeleton.joints[_k4abt.K4ABT_JOINT_SPINE_NAVEL].position.v[1]:.2f} mm", \
-			  f"Z: {body.skeleton.joints[_k4abt.K4ABT_JOINT_SPINE_NAVEL].position.v[2]:.2f} mm") 
+			  f"Z: {body.skeleton.joints[_k4abt.K4ABT_JOINT_SPINE_NAVEL].position.v[2]:.2f} mm")        
 
 	def draw2DSkeleton(self, skeleton2D, bodyId, image):
 		color = _k4abt.body_colors
@@ -67,7 +68,7 @@ class kinectBodyTracker:
             )
 
 		return image
-
+		
 	def initializeTracker(self):
 		"""Initialize the body tracker
 
@@ -85,7 +86,7 @@ class kinectBodyTracker:
 
 		When done with body tracking, close the handle with k4abt_tracker_destroy().
 		"""
-		_k4abt.VERIFY(self.k4abt.k4abt_tracker_create(self.sensor_calibration, self.tracker_config, self.tracker_handle), "Body tracker initialization failed!")
+		_k4abt.VERIFY(self.k4abt.k4abt_tracker_create(self.sensor_calibration, self.tracker_config, self.tracker_handle), "Body tracker failed!")
 		self.tracker_running = True
 
 	def destroyTracker(self):
