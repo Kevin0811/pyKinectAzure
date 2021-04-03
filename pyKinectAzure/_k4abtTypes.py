@@ -96,14 +96,18 @@ K4ABT_SENSOR_ORIENTATION_FLIP180 = 3
 #class k4abt_tracker_processing_mode_t(CtypeIntEnum):
 K4ABT_TRACKER_PROCESSING_MODE_GPU = 0
 K4ABT_TRACKER_PROCESSING_MODE_CPU = 1
+K4ABT_TRACKER_PROCESSING_MODE_GPU_CUDA = 2
 
 class _k4abt_tracker_configuration_t(ctypes.Structure):
     _fields_= [
         ("sensor_orientation", ctypes.c_int),
         ("processing_mode", ctypes.c_int),
         ("gpu_device_id", ctypes.c_int32),
+        ("model",ctypes.c_char_p),
     ]
+        
 k4abt_tracker_configuration_t = _k4abt_tracker_configuration_t
+
 
 class _wxyz(ctypes.Structure):
     _fields_= [
@@ -164,16 +168,15 @@ class k4abt_body2D_t(ctypes.Structure):
         ("skeleton", k4abt_skeleton2D_t),
     ]
 
-
 K4ABT_BODY_INDEX_MAP_BACKGROUND = 255
 K4ABT_INVALID_BODY_ID = 0xFFFFFFFF
 K4ABT_DEFAULT_TRACKER_SMOOTHING_FACTOR = 0.0
 
 # TODO(Andoryuuta): Not sure if a single instance of the default config like this will work, might need a creation function.
-K4ABT_TRACKER_CONFIG_DEFAULT = k4abt_tracker_configuration_t()
-K4ABT_TRACKER_CONFIG_DEFAULT.sensor_orientation = K4ABT_SENSOR_ORIENTATION_DEFAULT
-K4ABT_TRACKER_CONFIG_DEFAULT.processing_mode = K4ABT_TRACKER_PROCESSING_MODE_GPU
-K4ABT_TRACKER_CONFIG_DEFAULT.gpu_device_id = 0
+#K4ABT_TRACKER_CONFIG_DEFAULT = k4abt_tracker_configuration_t()
+#K4ABT_TRACKER_CONFIG_DEFAULT.sensor_orientation = K4ABT_SENSOR_ORIENTATION_DEFAULT
+#K4ABT_TRACKER_CONFIG_DEFAULT.processing_mode = K4ABT_TRACKER_PROCESSING_MODE_CPU
+#K4ABT_TRACKER_CONFIG_DEFAULT.gpu_device_id = 0
 
 body_colors = np.ones((256,3), dtype=np.uint8)*K4ABT_BODY_INDEX_MAP_BACKGROUND
 body_colors[:7,:] = np.array([[202, 183, 42], [42, 61, 202], [42, 202, 183], [202, 42,61], [183, 42, 202], [42, 202, 61], [141, 202, 42]]) 
