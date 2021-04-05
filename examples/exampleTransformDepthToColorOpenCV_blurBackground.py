@@ -29,7 +29,7 @@ def alphaBlend(img1, img2, mask):
 
 if __name__ == "__main__":
 
-    dis_near = 200
+    dis_near = 300
     dis_far = 900
 
     # Initialize the library with the path containing the module
