@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(1, '../pyKinectAzure/')
+sys.path.insert(0, '../pyKinectAzure/')
 
 import numpy as np
 from pyKinectAzure import pyKinectAzure, _k4a, postProcessing
@@ -57,13 +57,17 @@ if __name__ == "__main__":
 
 			height, width = color_image.shape[:2]
 
+			mask = np.any([transformed_depth_image < dis_near, transformed_depth_image > dis_far], axis=0)
+			color_image[mask] = 0
+
+			'''
 			for i in range(0,height):
 				for j in range(0, width):
 					if transformed_depth_image[i][j] < dis_near or transformed_depth_image[i][j] > dis_far:
 						color_image[i][j][0] = 0
 						color_image[i][j][1] = 0
 						color_image[i][j][2] = 0
-
+			'''
 
 
 			# Convert depth image (mm) to color, the range needs to be reduced down to the range (0,255)
