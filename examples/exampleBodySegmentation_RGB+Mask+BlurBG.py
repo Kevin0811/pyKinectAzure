@@ -76,8 +76,8 @@ if __name__ == "__main__":
             pyK4A.bodyTracker_update()
 
             # Get the information of each body
-            for body in pyK4A.body_tracker.bodiesNow:
-                pyK4A.body_tracker.printBodyPosition(body)
+            #for body in pyK4A.body_tracker.bodiesNow:
+            #    pyK4A.body_tracker.printBodyPosition(body)
 
             # Read and convert the Depth image data to numpy array:
             depth_image = pyK4A.image_convert_to_numpy(depth_image_handle)
@@ -117,7 +117,7 @@ if __name__ == "__main__":
             blur_image = cv2.GaussianBlur(color_image, (21,21),11 )
             # 將遮罩圖進行模糊處理
             blur_mask = cv2.GaussianBlur((255*mask).astype('uint8'), (21,21),11 )
-            # 將遮罩圖轉為三通通道
+            # 將遮罩圖轉為三通道
             alpha = cv2.cvtColor(blur_mask, cv2.COLOR_GRAY2BGR)/255.0
             # 將原圖(前景)與模糊圖(背景)整合
             dst_image=(color_image*(1-alpha) + blur_image*alpha).astype('uint8')
@@ -125,7 +125,8 @@ if __name__ == "__main__":
             #dst_image = copyto(color_image, mask)
             
             #cv2.imshow('Segmented Depth Image',combined_image)
-            cv2.imshow('Segmented RGB Image',dst_image)
+            cv2.imshow('Output Image',dst_image)
+            cv2.imshow('Alpha Mask',blur_mask)
             
             k = cv2.waitKey(1)
 
