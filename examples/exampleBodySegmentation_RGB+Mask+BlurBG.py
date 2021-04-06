@@ -108,15 +108,17 @@ if __name__ == "__main__":
 
             #body_image_color_cv = cv2.fromarray(body_image_color)
 
+            # reference https://stackoverflow.com/questions/42594993/gradient-mask-blending-in-opencv-python
+
             # 拷貝 原圖(color_image) 作為背景圖片
             background = color_image.copy()
             # 對背景圖執行遮罩
             background[mask] = 0
 
             # 將原圖進行模糊處理
-            blur_image = cv2.GaussianBlur(color_image, (21,21),11 )
+            blur_image = cv2.GaussianBlur(color_image, (15,15),cv2.BORDER_DEFAULT)
             # 將遮罩圖進行模糊處理
-            blur_mask = cv2.GaussianBlur((255*mask).astype('uint8'), (21,21),11 )
+            blur_mask = cv2.GaussianBlur((255*mask).astype('uint8'), (15,15),cv2.BORDER_DEFAULT)
             # 將遮罩圖轉為三通道
             alpha = cv2.cvtColor(blur_mask, cv2.COLOR_GRAY2BGR)/255.0
             # 將原圖(前景)與模糊圖(背景)整合
