@@ -28,7 +28,7 @@ if __name__ == "__main__":
     # Modify camera configuration
     device_config = pyK4A.config
     #device_config.color_format = _k4a.K4A_IMAGE_FORMAT_COLOR_BGRA32
-    device_config.color_resolution = _k4a.K4A_COLOR_RESOLUTION_1080P
+    device_config.color_resolution = _k4a.K4A_COLOR_RESOLUTION_720P
     device_config.depth_mode = _k4a.K4A_DEPTH_MODE_NFOV_UNBINNED
     print(device_config)
 
