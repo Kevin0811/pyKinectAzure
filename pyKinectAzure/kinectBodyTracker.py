@@ -57,7 +57,7 @@ class kinectBodyTracker:
 	def draw2DSkeleton(self, skeleton2D, bodyId, image):
 		color = _k4abt.body_colors
 		for joint in skeleton2D.joints2D:
-			image = cv2.circle(image, (int(joint.position.v[0]), int(joint.position.v[1])), 3, (255,0,0), 3)
+			painted_image = cv2.circle(image, (int(joint.position.v[0]), int(joint.position.v[1])), 3, (255,0,0), 3)
 
 		for segmentId in range(len(_k4abt.K4ABT_SEGMENT_PAIRS)):
 			point1 = skeleton2D.joints2D[_k4abt.K4ABT_SEGMENT_PAIRS[segmentId][0]].position.v

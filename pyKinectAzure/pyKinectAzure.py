@@ -65,6 +65,27 @@ class pyKinectAzure:
 		#body_image_color = np.dstack([cv2.LUT(body_image, _k4abt.body_colors[:,i]) for i in range(3)])
 		return self.body_tracker.segmented_body_img
 	
+	def bodyTracker_project_skeleton_rgb(self, skeleton):
+		# Project using the calibration of the camera for the image
+		position_2d = _k4a.k4a_float2_t()
+		valid = ctypes.c_int()
+		skeleton2D = _k4abt.k4abt_skeleton2D_t()
+
+		for jointID,joint in enumerate(skeleton.joints):
+			_k4a.VERIFY(self.k4a.k4a_calibration_3d_to_2d(
+										self.body_tracker.sensor_calibration, 
+										joint.position, 
+										_k4a.K4A_CALIBRATION_TYPE_DEPTH, 
+										_k4a.K4A_CALIBRATION_TYPE_COLOR, 
+										position_2d,
+										valid),
+										 "Project skeleton failed")
+
+			skeleton2D.joints2D[jointID].position = position_2d
+			skeleton2D.joints2D[jointID].confidence_level = joint.confidence_level
+					
+		return skeleton2D
+	
 	def bodyTracker_project_skeleton(self, skeleton):
 		# Project using the calibration of the camera for the image
 		position_2d = _k4a.k4a_float2_t()
@@ -79,7 +100,7 @@ class pyKinectAzure:
 										_k4a.K4A_CALIBRATION_TYPE_DEPTH, 
 										position_2d,
 										valid),
-										 "Project skeleton failed")
+											"Project skeleton rgb failed")
 
 			skeleton2D.joints2D[jointID].position = position_2d
 			skeleton2D.joints2D[jointID].confidence_level = joint.confidence_level
