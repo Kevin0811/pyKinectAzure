@@ -14,7 +14,11 @@ class kinectBodyTracker:
 		self.k4abt = _k4abt.k4abt(modulePath)
 
 		self.tracker_handle = _k4abt.k4abt_tracker_t()	
-		self.tracker_config = _k4abt.k4abt_tracker_configuration_t(0,2,0,None)
+		self.tracker_config = _k4abt.k4abt_tracker_configuration_t( _k4abt.K4ABT_SENSOR_ORIENTATION_DEFAULT,
+																	_k4abt.K4ABT_TRACKER_PROCESSING_MODE_GPU_CUDA,
+																	0,
+																	None
+																	)
 		print("CONFIG " + str(self.tracker_config.processing_mode))
 		self.body_frame_handle = _k4abt.k4abt_frame_t()
 		self.segmented_body_img = _k4a.k4a_image_t()

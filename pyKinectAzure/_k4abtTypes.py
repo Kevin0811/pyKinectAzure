@@ -97,6 +97,8 @@ K4ABT_SENSOR_ORIENTATION_FLIP180 = 3
 K4ABT_TRACKER_PROCESSING_MODE_GPU = 0
 K4ABT_TRACKER_PROCESSING_MODE_CPU = 1
 K4ABT_TRACKER_PROCESSING_MODE_GPU_CUDA = 2
+K4ABT_TRACKER_PROCESSING_MODE_GPU_TENSORRT = 3
+K4ABT_TRACKER_PROCESSING_MODE_GPU_DIRECTML = 4
 
 class _k4abt_tracker_configuration_t(ctypes.Structure):
     _fields_= [
@@ -105,7 +107,7 @@ class _k4abt_tracker_configuration_t(ctypes.Structure):
         ("gpu_device_id", ctypes.c_int32),
         ("model",ctypes.c_char_p),
     ]
-        
+# model: dnn_model_2_0_op11.onnx(default), dnn_model_2_0_lite_op11.onnx
 k4abt_tracker_configuration_t = _k4abt_tracker_configuration_t
 
 

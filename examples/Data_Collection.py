@@ -12,6 +12,27 @@ bodyTrackingModulePath = 'C:\\Program Files\\Azure Kinect Body Tracking SDK\\sdk
 # under x86_64 linux please use r'/usr/lib/x86_64-linux-gnu/libk4a.so'
 # In Jetson please use r'/usr/lib/aarch64-linux-gnu/libk4a.so'
 
+def copyto(scr_Image, depth):
+
+	mask = cv2.inRange(scr_Image, depth*0.9, depth*1.1) 
+	dst_Image = cv2.bitwise_and(scr_Image, scr_Image, mask = mask)
+
+	# height = scr_Image.shape[0]
+	# width = scr_Image.shape[1]
+	# # 生成和原图一样高度和宽度的矩形（全为0）
+	# dst_Image = scr_Image
+
+	# # 以下是copyTo的算法原理：
+	# # 先遍历每行每列（如果不是灰度图还需遍历通道，可以事先把mask图转为灰度图）
+	# for row in range(scr_Image.shape[0]):
+	# 	for col in range(scr_Image.shape[1]):
+
+	# 		if scr_Image[row, col] > depth*1.1 or scr_Image[row, col] < depth*0.9:
+	# 			dst_Image[row, col] = 0
+	# 		else:
+	# 			dst_Image[row, col] = scr_Image[row, col]
+	return dst_Image
+
 if __name__ == "__main__":
 
     # Initialize the library with the path containing the module
@@ -24,7 +45,7 @@ if __name__ == "__main__":
     device_config = pyK4A.config
     #device_config.color_format = _k4a.K4A_IMAGE_FORMAT_COLOR_BGRA32
     device_config.color_resolution = _k4a.K4A_COLOR_RESOLUTION_720P
-    device_config.camera_fps = 1
+    device_config.camera_fps = 1 # 1 = 15 fps
     device_config.depth_mode = _k4a.K4A_DEPTH_MODE_WFOV_2X2BINNED
     device_config.synchronized_images_only = True # 同時調用 RGB 和 Depth 時啟動，確保兩者同步
     print(device_config)
@@ -82,13 +103,19 @@ if __name__ == "__main__":
                 joint_x = int(joint.position.v[0])
                 joint_y = int(joint.position.v[1])
 
-                if joint_x-122>0 and joint_x+112<1280 and joint_y-122>0 and joint_y+112<720:
+                if joint_x-112>0 and joint_x+112<1280 and joint_y-112>0 and joint_y+112<720:
 
                     #color_image = cv2.circle(color_image, (int(joint.position.v[0]), int(joint.position.v[1])), 3, (255,0,0), 3)
-                    crop_color_image = color_image[joint_y-122:joint_y+112, joint_x-112:joint_x+112]
+                    crop_color_image = color_image[joint_y-112:joint_y+112, joint_x-112:joint_x+112]
+                    crop_transformed_depth_image = transformed_depth_image[joint_y-112:joint_y+112, joint_x-112:joint_x+112]
+
+                    crop_transformed_depth_image = copyto(crop_transformed_depth_image, crop_transformed_depth_image[112, 112])
 
                     cv2.namedWindow('Crop Color Image',cv2.WINDOW_NORMAL)
                     cv2.imshow("Crop Color Image", crop_color_image)
+
+                    cv2.namedWindow('Crop Depth Image',cv2.WINDOW_NORMAL)
+                    cv2.imshow("Crop Depth Image", crop_transformed_depth_image)
 
                 #color_image = pyK4A.body_tracker.draw2DSkeleton(skeleton2D_rgb, body.id, color_image)
                 #transformed_depth_image = pyK4A.body_tracker.draw2DSkeleton(skeleton2D_rgb, body.id, transformed_depth_image)
