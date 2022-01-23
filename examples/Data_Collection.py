@@ -17,20 +17,6 @@ def copyto(scr_Image, depth):
 	mask = cv2.inRange(scr_Image, depth*0.9, depth*1.1) 
 	dst_Image = cv2.bitwise_and(scr_Image, scr_Image, mask = mask)
 
-	# height = scr_Image.shape[0]
-	# width = scr_Image.shape[1]
-	# # 生成和原图一样高度和宽度的矩形（全为0）
-	# dst_Image = scr_Image
-
-	# # 以下是copyTo的算法原理：
-	# # 先遍历每行每列（如果不是灰度图还需遍历通道，可以事先把mask图转为灰度图）
-	# for row in range(scr_Image.shape[0]):
-	# 	for col in range(scr_Image.shape[1]):
-
-	# 		if scr_Image[row, col] > depth*1.1 or scr_Image[row, col] < depth*0.9:
-	# 			dst_Image[row, col] = 0
-	# 		else:
-	# 			dst_Image[row, col] = scr_Image[row, col]
 	return dst_Image
 
 if __name__ == "__main__":
