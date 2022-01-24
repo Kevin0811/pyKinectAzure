@@ -58,19 +58,19 @@ for action, seq_num in actions_dict.items():
 # 倒數計時
 def count_down(frame_num, image, action_text):
     # 取得手勢後的第一幀：顯示 STARTING COLLECTION ! 字樣
-    if frame_num < 30:
+    if frame_num < 15:
         cv2.putText(image, 'STARTING COLLECTING ' + str.upper(action_text), (100,200), 
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255, 0), 4, cv2.LINE_AA)
     # 取得手勢後的第二幀：顯示 3 字樣
-    elif frame_num < 45: 
+    elif frame_num < 30: 
         cv2.putText(image, '3', (300,200), 
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255, 0), 4, cv2.LINE_AA)
     # 取得手勢後的第三幀：顯示 2 字樣
-    elif frame_num < 60: 
+    elif frame_num < 45: 
         cv2.putText(image, '2', (300,200), 
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255, 0), 4, cv2.LINE_AA)
     # 取得手勢後的第四幀：顯示 1 字樣
-    elif frame_num < 75: 
+    elif frame_num < 60: 
         cv2.putText(image, '1', (300,200), 
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255, 0), 4, cv2.LINE_AA)
     else:
@@ -125,6 +125,7 @@ if __name__ == '__main__':
             
             frame_num = 0
             sequences = []
+            frame_skeleton = []
             sequences_count = seq_num
             is_recoding = False
             
@@ -146,6 +147,7 @@ if __name__ == '__main__':
 
                     # Read and convert the image data to numpy array:
                     color_image = pyK4A.image_convert_to_numpy(color_image_handle)
+                    
 
                     # Read and convert the image data to numpy array:
                     #depth_image = pyK4A.image_convert_to_numpy(depth_image_handle)
@@ -156,47 +158,52 @@ if __name__ == '__main__':
                     
 
                     # Make detections
-                    flip_color_image= cv2.flip(color_image.copy(),1)
-                    image, results = mediapipe_detection(flip_color_image, hands)
+                    image, results = mediapipe_detection(color_image, hands)
 
                     # Draw landmarks
                     image, no_hand = draw_landmarks(image, results, mp_hands, mp_drawing_styles, mp_drawing)
-                    print(image.shape)
+                    #print(image.shape)
                     
                     cv2.putText(image, 'Collecting frames for {} Video Number {}'.format(action, sequences_count), (15,12), 
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
+
+                    color_image = cv2.flip(color_image,1)
+                    transformed_depth_image = cv2.flip(transformed_depth_image,1)
                 
                     if is_recoding:
                         
                         if sequences_count >= (max_count + num_sequences):
                             break
                             
-                        elif frame_num > (15 + sequence_length):
+                        elif frame_num > (5 + sequence_length):
 
                             sec = str(int(time.time()*10))
 
                             for body in pyK4A.body_tracker.bodiesNow:
+
+                                frame_skeleton = []
+
                                 # 骨架3D點投影到 RGB Image
                                 skeleton2D_rgb = pyK4A.bodyTracker_project_skeleton_rgb(body.skeleton)
                                 # 骨架3D點投影到 Depth Image
                                 #skeleton2D_depth = pyK4A.bodyTracker_project_skeleton(body.skeleton)
 
                                 joint = skeleton2D_rgb.joints2D[15]
-                                joint_x = int(joint.position.v[0])
+                                joint_x = int(-joint.position.v[0]+640*2)
                                 joint_y = int(joint.position.v[1])
 
                                 if joint_x-112>0 and joint_x+112<1280 and joint_y-112>0 and joint_y+112<720:
 
                                     #color_image = cv2.circle(color_image, (int(joint.position.v[0]), int(joint.position.v[1])), 3, (255,0,0), 3)
                                     crop_color_image = color_image[joint_y-112:joint_y+112, joint_x-112:joint_x+112]
-                                    print("color_image shape", color_image.shape)
+                                    #print("color_image shape", color_image.shape)
 
                                     for res in results.multi_hand_landmarks[0].landmark:
-                                        print(int(res.y*720), int(res.x*1280))
-                                        print(joint_y, joint_x)
-                                        print(int(res.y*720)-joint_y+112, int(res.x*1280)-joint_x+112)
-                                        print("---")
-                                        cv2.circle(crop_color_image, (int(res.x*1280)-joint_x+112, int(res.y*720)-joint_y+112), 2, (255, 0, 0), -1)
+                                        frame_skeleton.append([int(res.x*1280)-joint_x+112, int(res.y*720)-joint_y+112, res.z])
+
+                                        #cv2.circle(crop_color_image, (int(res.x*1280)-joint_x+112, int(res.y*720)-joint_y+112), 2, (255, 0, 0), -1)
+                                    
+                                    #print(frame_skeleton)
 
                                     crop_transformed_depth_image = transformed_depth_image[joint_y-112:joint_y+112, joint_x-112:joint_x+112]
                                     transformed_depth_image = cv2.convertScaleAbs (transformed_depth_image, alpha=0.05)
@@ -208,6 +215,7 @@ if __name__ == '__main__':
 
                                     cv2.imwrite( os.path.join(DATA_PATH, action, sec+'_rgb.jpg'), crop_color_image)
                                     cv2.imwrite( os.path.join(DATA_PATH, action, sec+'_dpt.jpg'), crop_transformed_depth_image)
+                                    np.save(os.path.join(DATA_PATH, action, sec+'_single'), frame_skeleton)
                                             
                             # 存檔
                             npy_path = os.path.join(DATA_PATH, action, sec)
@@ -221,7 +229,7 @@ if __name__ == '__main__':
                             frame_num  = 0
                             sequences = []
                         
-                        elif frame_num > 15:
+                        elif frame_num > 5:
                             
                             # 等待手勢
                             if no_hand: 

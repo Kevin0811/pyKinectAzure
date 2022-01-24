@@ -25,8 +25,8 @@ def mediapipe_detection(frame, model):
 
 # 畫出手部關鍵點
 
-dis_min = 0.0008
-dis_max = 0.05
+dis_min = 0.0005
+dis_max = 0.02
 
 def draw_landmarks(image, results, mp_hands, mp_drawing_styles, mp_drawing):
     no_hand = False
