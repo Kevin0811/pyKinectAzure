@@ -5,6 +5,8 @@ import numpy as np
 from pyKinectAzure import pyKinectAzure, _k4a, postProcessing
 import cv2
 
+import time
+
 # Path to the module
 # TODO: Modify with the path containing the k4a.dll from the Azure Kinect SDK
 modulePath = 'C:\\Program Files\\Azure Kinect SDK v1.4.1\\sdk\\windows-desktop\\amd64\\release\\bin\\k4a.dll' 
@@ -44,6 +46,11 @@ if __name__ == "__main__":
 
     keycode = 0
     frame_cnt = 0
+
+    cv2.namedWindow('Crop Color Image',cv2.WINDOW_NORMAL)
+    cv2.namedWindow('Crop Depth Image',cv2.WINDOW_NORMAL)
+    cv2.namedWindow('Color Image',cv2.WINDOW_NORMAL)
+    cv2.namedWindow('Trans Depth Image',cv2.WINDOW_NORMAL)
 
     while True:
 
@@ -97,21 +104,25 @@ if __name__ == "__main__":
 
                     crop_transformed_depth_image = copyto(crop_transformed_depth_image, crop_transformed_depth_image[112, 112])
 
-                    cv2.namedWindow('Crop Color Image',cv2.WINDOW_NORMAL)
                     cv2.imshow("Crop Color Image", crop_color_image)
-
-                    cv2.namedWindow('Crop Depth Image',cv2.WINDOW_NORMAL)
                     cv2.imshow("Crop Depth Image", crop_transformed_depth_image)
+
+                    if frame_cnt > 15:
+
+                        sec = str(int(time.time()))
+
+                        cv2.imwrite('hand_data\\' + sec + '_rgb.jpg', crop_color_image)
+                        cv2.imwrite('hand_data\\' + sec + '_dpt.jpg', crop_transformed_depth_image)
+
+                        frame_cnt = 0
 
                 #color_image = pyK4A.body_tracker.draw2DSkeleton(skeleton2D_rgb, body.id, color_image)
                 #transformed_depth_image = pyK4A.body_tracker.draw2DSkeleton(skeleton2D_rgb, body.id, transformed_depth_image)
                 #depth_image = pyK4A.body_tracker.draw2DSkeleton(skeleton2D_depth, body.id, depth_image)
 
             # Plot the image
-            cv2.namedWindow('Color Image',cv2.WINDOW_NORMAL)
+            
             cv2.imshow("Color Image",color_image)
-
-            cv2.namedWindow('Trans Depth Image',cv2.WINDOW_NORMAL)
             cv2.imshow("Trans Depth Image", transformed_depth_image)
 
             #cv2.namedWindow('Depth Image',cv2.WINDOW_NORMAL)
