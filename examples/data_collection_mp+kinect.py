@@ -16,7 +16,7 @@ from pyKinectAzure import pyKinectAzure, _k4a, postProcessing
 modulePath = 'C:\\Program Files\\Azure Kinect SDK v1.4.1\\sdk\\windows-desktop\\amd64\\release\\bin\\k4a.dll' 
 bodyTrackingModulePath = 'C:\\Program Files\\Azure Kinect Body Tracking SDK\\sdk\\windows-desktop\\amd64\\release\\bin\\k4abt.dll'
 
-from module import mediapipe_detection, draw_landmarks, extract_keypoints
+from module import mediapipe_detection, draw_landmarks, extract_keypoints, extract_world_keypoints
 
 # 變數
 mp_drawing = mp.solutions.drawing_utils
@@ -24,7 +24,7 @@ mp_drawing_styles = mp.solutions.drawing_styles
 mp_hands = mp.solutions.hands
 
 # Path for exported data, numpy arrays 存放資料集的資料夾名稱
-DATA_PATH = os.path.join('MP_Data')
+DATA_PATH = os.path.join('vTouch_Gestures_Data')
 
 # Actions that we try to detect 手勢種類名稱
 actions = np.array(['open', 'fist', 'one', 'two', 'three', 'four', 'six','eight', 'nine', 'ok', 'check', 'like', 'middel', 'yo'])
@@ -239,7 +239,7 @@ if __name__ == '__main__':
                                 sequences = []
                             else:
                                 # NEW Export keypoints
-                                keypoints = extract_keypoints(results)
+                                keypoints = extract_world_keypoints(results)
                                 sequences = np.append(sequences, keypoints)
                                 #print(sequences)
                                 

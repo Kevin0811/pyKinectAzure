@@ -80,6 +80,9 @@ def extract_keypoints(results):
     depth = np.array([[res.z] for res in results.multi_hand_landmarks[0].landmark]).flatten()
     return np.append(standardization(pose), depth)
 
+# Keypoints Landmarks Dict to List
+def extract_world_keypoints(results):
+    return np.array([[res.x, res.y, res.z] for res in results.multi_hand_world_landmarks[0].landmark])
 
 # 長條圖顏色
 colors = [(245,117,16), (117,245,16), (16,117,245)]
