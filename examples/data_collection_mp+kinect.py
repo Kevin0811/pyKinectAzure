@@ -1,4 +1,4 @@
-from calendar import c
+#from calendar import c
 import cv2
 import numpy as np
 import os
@@ -219,16 +219,8 @@ if __name__ == '__main__':
                                 sequences = []
                             
                             else:
-<<<<<<< HEAD
                                 # NEW Export keypoints
                                 keypoints = extract_world_keypoints(results)
-=======
-                            # 偵測到至少一個手部
-
-                                # 提取手部關鍵點座標
-                                keypoints = extract_keypoints(results)
-                                # 加入暫存 List
->>>>>>> ba63cf9e2eabaa98dac2adb82964cdb1f92907f2
                                 sequences = np.append(sequences, keypoints)
 
                                 # 遍歷每一個 Kinect Skeleton 找到的 Body
