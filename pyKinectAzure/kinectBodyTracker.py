@@ -10,12 +10,16 @@ import platform
 
 class kinectBodyTracker:
 
-	def __init__(self, modulePath, sensor_calibration):
+	def __init__(self, modulePath, sensor_calibration, apply_lite):
 		self.k4abt = _k4abt.k4abt(modulePath)
 
 		self.tracker_handle = _k4abt.k4abt_tracker_t()
 
-		self.model_path = "C:/Program Files/Azure Kinect Body Tracking SDK/sdk/windows-desktop/amd64/release/bin/dnn_model_2_0_lite_op11.onnx".encode('utf-8')
+		basic_path = "C:/Program Files/Azure Kinect Body Tracking SDK/sdk/windows-desktop/amd64/release/bin/"
+		if apply_lite:
+			self.model_path = (basic_path + "dnn_model_2_0_lite_op11.onnx").encode('utf-8')
+		else:
+			self.model_path = (basic_path + "dnn_model_2_0_op11.onnx").encode('utf-8')
 
 		self.tracker_config = _k4abt.k4abt_tracker_configuration_t( _k4abt.K4ABT_SENSOR_ORIENTATION_DEFAULT,
 																	_k4abt.K4ABT_TRACKER_PROCESSING_MODE_GPU_CUDA,

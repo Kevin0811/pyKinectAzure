@@ -26,13 +26,13 @@ class pyKinectAzure:
 		self.cameras_running = False
 		self.imu_running = False
 
-	def bodyTracker_start(self, bodyTrackerModulePath):
+	def bodyTracker_start(self, bodyTrackerModulePath, apply_lite=False):
 		# Get depth sensor calibration
 		depthSensorCalibration = _k4a.k4a_calibration_t()
 		self.getDepthSensorCalibration(depthSensorCalibration)
 
 		# Initialize the body tracker
-		self.body_tracker = kinectBodyTracker(bodyTrackerModulePath,  depthSensorCalibration)
+		self.body_tracker = kinectBodyTracker(bodyTrackerModulePath,  depthSensorCalibration, apply_lite)
 
 	def get_num_bodies(self):
 
