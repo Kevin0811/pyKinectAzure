@@ -135,6 +135,8 @@ if __name__ == '__main__':
             is_recoding = False # 是否在錄製狀態(False = 倒數狀態)
             
             while True:
+
+                crd_in_range = True # 手部座標(from Mediapipe)在手部圖片(from Kinect)範圍內
                 
                 # Get capture
                 pyK4A.device_get_capture()
@@ -199,8 +201,9 @@ if __name__ == '__main__':
                             sec = str(int(time.time()*10)) # 建立時間戳記
                                             
                             # 儲存
-                            npy_path = os.path.join(DATA_PATH, action, sec) # 生成路徑                       
-                            np.save(npy_path, sequences.reshape(sequence_length, 63)) # 存檔
+                            npy_path = os.path.join(DATA_PATH, action, sec) # 生成路徑                 
+                            #np.save(npy_path, sequences.reshape(sequence_length, 63)) # 存檔
+                            np.save(npy_path, np.array(sequences)) # 存檔
                             
                             sequences_count += 1
                             
@@ -221,7 +224,7 @@ if __name__ == '__main__':
                             else:
                                 # NEW Export keypoints
                                 keypoints = extract_world_keypoints(results)
-                                sequences = np.append(sequences, keypoints)
+                                sequences.append(keypoints)
 
                                 # 遍歷每一個 Kinect Skeleton 找到的 Body
                                 for body in pyK4A.body_tracker.bodiesNow: 
@@ -244,7 +247,7 @@ if __name__ == '__main__':
                                         hand_side = 8  # 左手
                                         hand_top = 9
 
-                                    # 取得手部座標
+                                    # 取得手部座標 (Kinect)
                                     joint = skeleton2D_rgb.joints2D[hand_side]
                                     joint_x = int(-joint.position.v[0]+640*2) # 垂直翻轉
                                     joint_y = int(joint.position.v[1])
@@ -256,6 +259,7 @@ if __name__ == '__main__':
                                     joint_center_x = int((joint_x+joint_top_x)/2)
                                     joint_center_y = int((joint_y+joint_top_y)/2)
 
+                                    # 透過 joint center 判斷欲裁切的手部圖片是否在範圍內
                                     if 1168 > joint_center_x > 112 and 608 > joint_center_y > 112:
 
                                         #color_image = cv2.circle(color_image, (int(joint.position.v[0]), int(joint.position.v[1])), 3, (255,0,0), 3)
@@ -269,33 +273,42 @@ if __name__ == '__main__':
                                         #print("color_image shape", color_image.shape)
 
                                         for res in results.multi_hand_landmarks[0].landmark:
+
                                             # Mediapipe 座標轉換：彩圖 → 裁切彩圖
-                                            frame_skeleton.append([int(res.x*1280)-joint_center_x+112, int(res.y*720)-joint_center_y+112, res.z])
+                                            x_crd = int(res.x*1280)-joint_center_x+112
+                                            y_crd = int(res.y*720)-joint_center_y+112
+
+                                            if 225>x_crd>0 and 225>y_crd>0:
+                                                frame_skeleton.append([x_crd, y_crd, res.z])
+                                            else:
+                                                crd_in_range = False
+                                                print(x_crd, y_crd)
                                             
                                             # 確認座標轉換是否能對應到裁切後的彩圖
                                             cv2.circle(crop_color_image_show, (int(res.x*1280)-joint_x+112, int(res.y*720)-joint_y+112), 2, (255, 0, 0), -1)
                                         
-                                        #print(frame_skeleton)
+                                        #print(crd_in_range)
                                         
                                         # 裁切深度圖
                                         #crop_transformed_depth_image = transformed_depth_image[joint_y-112:joint_y+112, joint_x-112:joint_x+112]
+                                        # 裁切並傳送至 GPU
                                         crop_transformed_depth_image = cv2.UMat(transformed_depth_image, [joint_center_y-112, joint_center_y+112], [joint_center_x-112, joint_center_x+112])
                                         # 鮮明化
                                         transformed_depth_image = cv2.convertScaleAbs(transformed_depth_image, alpha=0.05)
                                         # 手部遮罩
                                         crop_transformed_depth_image = copyto(crop_transformed_depth_image, cv2.UMat.get(crop_transformed_depth_image)[112, 112])
 
-                                        # 儲存座標
-                                        np.save(os.path.join(DATA_PATH, action, sec+'_crd'), frame_skeleton)
-
                                         # 顯示裁切彩圖
                                         cv2.imshow("Crop Color Image", crop_color_image_show)
                                         #cv2.imshow("Crop Depth Image", crop_transformed_depth_image)
 
-                                        # 儲存圖片
-                                        cv2.imwrite( os.path.join(DATA_PATH, action, sec+'_rgb.jpg'), crop_color_image)
-                                        cv2.imwrite( os.path.join(DATA_PATH, action, sec+'_kpt.jpg'), crop_color_image_show)
-                                        cv2.imwrite( os.path.join(DATA_PATH, action, sec+'_dpt.jpg'), crop_transformed_depth_image)
+                                        if crd_in_range:
+                                            # 儲存圖片
+                                            cv2.imwrite( os.path.join(DATA_PATH, action, sec+'_rgb.jpg'), crop_color_image)
+                                            cv2.imwrite( os.path.join(DATA_PATH, action, sec+'_kpt.jpg'), crop_color_image_show)
+                                            cv2.imwrite( os.path.join(DATA_PATH, action, sec+'_dpt.jpg'), crop_transformed_depth_image)
+                                            # 儲存座標
+                                            np.save(os.path.join(DATA_PATH, action, sec+'_crd'), frame_skeleton)
                                 
                     elif no_hand:
                     # 當前畫面中沒有手部
