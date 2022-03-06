@@ -239,40 +239,49 @@ if __name__ == '__main__':
                                     # 基於 MediaPipe 辨識結果判斷左右手 → 取得 Kinect Skeleton 對應的編號
                                     if results.multi_handedness[0].classification[0].label == "Right":
                                         hand_side = 15 # 右手
+                                        hand_top = 16
                                     else:
                                         hand_side = 8  # 左手
+                                        hand_top = 9
 
                                     # 取得手部座標
                                     joint = skeleton2D_rgb.joints2D[hand_side]
                                     joint_x = int(-joint.position.v[0]+640*2) # 垂直翻轉
                                     joint_y = int(joint.position.v[1])
 
-                                    if joint_x-112>0 and joint_x+112<1280 and joint_y-112>0 and joint_y+112<720:
+                                    joint_top = skeleton2D_rgb.joints2D[hand_top]
+                                    joint_top_x = int(-joint.position.v[0]+640*2) # 垂直翻轉
+                                    joint_top_y = int(joint.position.v[1])
+
+                                    joint_center_x = int((joint_x+joint_top_x)/2)
+                                    joint_center_y = int((joint_y+joint_top_y)/2)
+
+                                    if 1168 > joint_center_x > 112 and 608 > joint_center_y > 112:
 
                                         #color_image = cv2.circle(color_image, (int(joint.position.v[0]), int(joint.position.v[1])), 3, (255,0,0), 3)
 
                                         # 裁切彩圖
                                         #crop_color_image = color_image[joint_y-112:joint_y+112, joint_x-112:joint_x+112]
                                         # in GPU
-                                        crop_color_image = cv2.UMat(color_image, [joint_y-112, joint_y+112], [joint_x-112, joint_x+112])
+                                        crop_color_image = cv2.UMat(color_image, [joint_center_y-112, joint_center_y+112], [joint_center_x-112, joint_center_x+112])
 
-                                        #crop_color_image_show = crop_color_image.copy()
+                                        crop_color_image_show = cv2.UMat.get(crop_color_image)
                                         #print("color_image shape", color_image.shape)
 
                                         for res in results.multi_hand_landmarks[0].landmark:
-                                            # 座標轉換：彩圖 → 裁切彩圖
-                                            frame_skeleton.append([int(res.x*1280)-joint_x+112, int(res.y*720)-joint_y+112, res.z])
+                                            # Mediapipe 座標轉換：彩圖 → 裁切彩圖
+                                            frame_skeleton.append([int(res.x*1280)-joint_center_x+112, int(res.y*720)-joint_center_y+112, res.z])
                                             
                                             # 確認座標轉換是否能對應到裁切後的彩圖
-                                            #cv2.circle(crop_color_image_show, (int(res.x*1280)-joint_x+112, int(res.y*720)-joint_y+112), 2, (255, 0, 0), -1)
+                                            cv2.circle(crop_color_image_show, (int(res.x*1280)-joint_x+112, int(res.y*720)-joint_y+112), 2, (255, 0, 0), -1)
                                         
                                         #print(frame_skeleton)
                                         
                                         # 裁切深度圖
                                         #crop_transformed_depth_image = transformed_depth_image[joint_y-112:joint_y+112, joint_x-112:joint_x+112]
-                                        crop_transformed_depth_image = cv2.UMat(transformed_depth_image, [joint_y-112, joint_y+112], [joint_x-112, joint_x+112])
+                                        crop_transformed_depth_image = cv2.UMat(transformed_depth_image, [joint_center_y-112, joint_center_y+112], [joint_center_x-112, joint_center_x+112])
                                         # 鮮明化
-                                        transformed_depth_image = cv2.convertScaleAbs (transformed_depth_image, alpha=0.05)
+                                        transformed_depth_image = cv2.convertScaleAbs(transformed_depth_image, alpha=0.05)
                                         # 手部遮罩
                                         crop_transformed_depth_image = copyto(crop_transformed_depth_image, cv2.UMat.get(crop_transformed_depth_image)[112, 112])
 
@@ -280,11 +289,12 @@ if __name__ == '__main__':
                                         np.save(os.path.join(DATA_PATH, action, sec+'_crd'), frame_skeleton)
 
                                         # 顯示裁切彩圖
-                                        cv2.imshow("Crop Color Image", crop_color_image)
+                                        cv2.imshow("Crop Color Image", crop_color_image_show)
                                         #cv2.imshow("Crop Depth Image", crop_transformed_depth_image)
 
                                         # 儲存圖片
                                         cv2.imwrite( os.path.join(DATA_PATH, action, sec+'_rgb.jpg'), crop_color_image)
+                                        cv2.imwrite( os.path.join(DATA_PATH, action, sec+'_kpt.jpg'), crop_color_image_show)
                                         cv2.imwrite( os.path.join(DATA_PATH, action, sec+'_dpt.jpg'), crop_transformed_depth_image)
                                 
                     elif no_hand:
